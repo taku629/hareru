@@ -1,0 +1,17 @@
+{
+  "name": "はれる — モヤモヤを1タップで晴らす",
+  "short_name": "はれる",
+  "description": "東京の大学生のためのAI晴れ心パートナー",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fef9f0",
+  "theme_color": "#fb923c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}
