@@ -5,6 +5,7 @@ import Header from '@/components/Header'
 import PageLoader from '@/components/PageLoader'
 import { createClient } from '@/lib/supabase/client'
 import { getTotalHarePoints, getToday } from '@/lib/storage'
+import { getProfile } from '@/lib/profile'
 
 interface DayStat {
   date: string
@@ -47,6 +48,8 @@ function calcStreak(days: DayStat[]): number {
 export default function StatsPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [displayName, setDisplayName] = useState<string | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -59,12 +62,16 @@ export default function StatsPage() {
         { data: moyamoyaRows },
         { data: yokattaRows },
         totalPoints,
+        profile,
       ] = await Promise.all([
         supabase.from('daily_records').select('id,date,morning_message,hare_points').eq('user_id', user.id).order('date', { ascending: false }),
         supabase.from('moyamoya_entries').select('daily_record_id').eq('user_id', user.id),
         supabase.from('yokatta_entries').select('daily_record_id').eq('user_id', user.id),
         getTotalHarePoints(),
+        getProfile(),
       ])
+      setDisplayName(profile?.display_name ?? null)
+      setAvatarUrl(profile?.avatar_url ?? null)
 
       const days: DayStat[] = (records ?? []).map(r => ({
         date: r.date as string,
@@ -99,7 +106,7 @@ export default function StatsPage() {
       <div className="orb orb-1" />
       <div className="orb orb-2" />
 
-      <Header harePoints={s.totalPoints} />
+      <Header harePoints={s.totalPoints} displayName={displayName} avatarUrl={avatarUrl} />
 
       <main
         className="relative z-10 max-w-lg mx-auto px-4"

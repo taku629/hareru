@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Header from '@/components/Header'
 import Confetti from '@/components/Confetti'
 import { getTodayRecord, saveTodayRecord, getTotalHarePoints } from '@/lib/storage'
+import { getProfile } from '@/lib/profile'
 import PageLoader from '@/components/PageLoader'
 
 type Phase = 'input' | 'loading' | 'done'
@@ -22,11 +23,15 @@ export default function YokattaPage() {
   const [harePoints, setHarePoints] = useState(0)
   const [alreadyDone, setAlreadyDone] = useState(false)
   const [dataLoading, setDataLoading] = useState(true)
+  const [displayName, setDisplayName] = useState<string | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
-      const [points, rec] = await Promise.all([getTotalHarePoints(), getTodayRecord()])
+      const [points, rec, profile] = await Promise.all([getTotalHarePoints(), getTodayRecord(), getProfile()])
       setHarePoints(points)
+      setDisplayName(profile?.display_name ?? null)
+      setAvatarUrl(profile?.avatar_url ?? null)
       if (rec.yokatta.length > 0) {
         const last = rec.yokatta[rec.yokatta.length - 1]
         setItems([...last.items, '', ''].slice(0, 3))
@@ -125,7 +130,7 @@ export default function YokattaPage() {
         />
       ))}
 
-      <Header harePoints={harePoints} dark />
+      <Header harePoints={harePoints} dark displayName={displayName} avatarUrl={avatarUrl} />
       <Confetti active={confetti} />
 
       <main
