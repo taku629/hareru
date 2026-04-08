@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Header from '@/components/Header'
 import Confetti from '@/components/Confetti'
 import { getTodayRecord, saveTodayRecord, getTotalHarePoints } from '@/lib/storage'
+import { getProfile } from '@/lib/profile'
 import PageLoader from '@/components/PageLoader'
 
 type Phase = 'input' | 'loading' | 'done'
@@ -16,13 +17,17 @@ export default function MoyamoyaPage() {
   const [harePoints, setHarePoints] = useState(0)
   const [history, setHistory] = useState<{ text: string; reframe: string }[]>([])
   const [dataLoading, setDataLoading] = useState(true)
+  const [displayName, setDisplayName] = useState<string | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     async function load() {
-      const [points, rec] = await Promise.all([getTotalHarePoints(), getTodayRecord()])
+      const [points, rec, profile] = await Promise.all([getTotalHarePoints(), getTodayRecord(), getProfile()])
       setHarePoints(points)
       setHistory(rec.moyamoya.map(m => ({ text: m.text, reframe: m.reframe })))
+      setDisplayName(profile?.display_name ?? null)
+      setAvatarUrl(profile?.avatar_url ?? null)
       setDataLoading(false)
     }
     load()
@@ -82,7 +87,7 @@ export default function MoyamoyaPage() {
       <div className="orb" style={{ width:220,height:220,background:'radial-gradient(circle,#818cf8,transparent)',top:-60,left:-50,opacity:.2,position:'fixed',borderRadius:'50%',filter:'blur(60px)',pointerEvents:'none',zIndex:0,animation:'float 8s ease-in-out infinite' }} />
       <div className="orb" style={{ width:200,height:200,background:'radial-gradient(circle,#f472b6,transparent)',bottom:100,right:-50,opacity:.18,position:'fixed',borderRadius:'50%',filter:'blur(60px)',pointerEvents:'none',zIndex:0,animation:'float 10s ease-in-out infinite reverse' }} />
 
-      <Header harePoints={harePoints} />
+      <Header harePoints={harePoints} displayName={displayName} avatarUrl={avatarUrl} />
       <Confetti active={confetti} />
 
       <main

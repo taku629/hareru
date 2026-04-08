@@ -9,6 +9,7 @@ import {
   getRecentContext,
   getTotalHarePoints,
 } from '@/lib/storage'
+import { getProfile } from '@/lib/profile'
 import PageLoader from '@/components/PageLoader'
 
 type Phase = 'idle' | 'loading' | 'done'
@@ -20,11 +21,15 @@ export default function MorningPage() {
   const [harePoints, setHarePoints] = useState(0)
   const [alreadyDone, setAlreadyDone] = useState(false)
   const [dataLoading, setDataLoading] = useState(true)
+  const [displayName, setDisplayName] = useState<string | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
-      const [points, rec] = await Promise.all([getTotalHarePoints(), getTodayRecord()])
+      const [points, rec, profile] = await Promise.all([getTotalHarePoints(), getTodayRecord(), getProfile()])
       setHarePoints(points)
+      setDisplayName(profile?.display_name ?? null)
+      setAvatarUrl(profile?.avatar_url ?? null)
       if (rec.morningMessage) {
         setMessage(rec.morningMessage)
         setPhase('done')
@@ -98,7 +103,7 @@ export default function MorningPage() {
       <div className="orb orb-2" />
       <div className="orb orb-3" />
 
-      <Header harePoints={harePoints} />
+      <Header harePoints={harePoints} displayName={displayName} avatarUrl={avatarUrl} />
       <Confetti active={confetti} />
 
       {/* pt-[topbar] pb-[bottomnav + safe-bottom] */}

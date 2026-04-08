@@ -31,15 +31,37 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // 未ログインかつ /auth 以外にアクセスした場合はリダイレクト
+  const pathname = request.nextUrl.pathname
+
+  // 未ログイン → /auth へ
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/api')
+    !pathname.startsWith('/auth') &&
+    !pathname.startsWith('/api')
   ) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth'
     return NextResponse.redirect(url)
+  }
+
+  // ログイン済み + アプリページ → プロフィール未設定なら /onboarding へ
+  if (
+    user &&
+    !pathname.startsWith('/auth') &&
+    !pathname.startsWith('/api') &&
+    !pathname.startsWith('/onboarding')
+  ) {
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('display_name')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (!profile?.display_name) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/onboarding'
+      return NextResponse.redirect(url)
+    }
   }
 
   return supabaseResponse
