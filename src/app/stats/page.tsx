@@ -98,6 +98,16 @@ export default function StatsPage() {
 
   const s = stats!
 
+  const SHARE_MILESTONES = [7, 30, 100]
+  const milestone = SHARE_MILESTONES.find(m => s.streak >= m && s.streak < (SHARE_MILESTONES[SHARE_MILESTONES.indexOf(m) + 1] ?? Infinity))
+    ?? (s.streak >= 100 ? 100 : null)
+
+  function handleShare(days: number) {
+    const cardUrl = `${location.origin}/api/share-card?days=${days}&name=${encodeURIComponent(displayName ?? 'あなた')}`
+    const tweetText = encodeURIComponent(`${days}日間晴れ続けました☀️ #Hareru`)
+    window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(cardUrl)}`, '_blank')
+  }
+
   return (
     <div
       className="min-h-screen relative overflow-x-hidden"
@@ -201,6 +211,44 @@ export default function StatsPage() {
             <div style={{ fontSize: 12, color: '#6860b5', fontWeight: 700 }}>累計pt</div>
           </div>
         </div>
+
+        {/* ストリーク達成シェアバナー */}
+        {milestone && (
+          <div
+            className="rounded-3xl p-4 mb-4 animate-fade-up"
+            style={{
+              animationDelay: '0.16s', opacity: 0, animationFillMode: 'forwards',
+              background: 'linear-gradient(135deg,rgba(251,146,60,0.12),rgba(244,114,182,0.12))',
+              border: '1px solid rgba(251,146,60,0.3)',
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p style={{ fontFamily: "'M PLUS Rounded 1c', sans-serif", fontWeight: 900, fontSize: 14, color: '#c2410c', marginBottom: 2 }}>
+                  🎉 {milestone}日連続達成！
+                </p>
+                <p style={{ fontSize: 12, color: '#a87c60' }}>みんなにシェアしよう</p>
+              </div>
+              <button
+                onClick={() => handleShare(milestone)}
+                style={{
+                  background: 'linear-gradient(135deg,#fb923c,#f472b6)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 16,
+                  padding: '10px 18px',
+                  fontFamily: "'M PLUS Rounded 1c', sans-serif",
+                  fontWeight: 800,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                𝕏 シェア
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* アクティビティ数 */}
         <div
