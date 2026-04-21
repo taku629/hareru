@@ -54,7 +54,13 @@ ${context}
       },
     })
   } catch {
-    // Demo fallback
+    if (!process.env.DEMO_MODE) {
+      return new NextResponse('AIとの接続に失敗しました。しばらくしてから再試行してください ☁️', {
+        status: 503,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      })
+    }
+    // Demo fallback (DEMO_MODE=true のときのみ)
     const demos = [
       '昨日もよく頑張ったね！☀️ 今日はまず「小さな一歩」から始めよう。朝ごはん食べて、元気チャージ！今日も最高な一日になるよ ✨🌈',
       'おはよう！☀️ 今日も東京のどこかで、あなたを応援してる人がいるよ。まず深呼吸して、今日やりたいこと一つ決めよ！✨',
