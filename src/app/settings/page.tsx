@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { getProfile, upsertProfile } from '@/lib/profile'
 import Header from '@/components/Header'
 import PageLoader from '@/components/PageLoader'
+import PushNotificationToggle from '@/components/PushNotificationToggle'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -268,6 +269,11 @@ export default function SettingsPage() {
             />
           </Section>
         )}
+
+        {/* ── Notifications section ────────────────── */}
+        <Section title="通知">
+          <PushNotificationToggle />
+        </Section>
 
         {/* ── Account section ──────────────────────── */}
         <Section title="アカウント">
