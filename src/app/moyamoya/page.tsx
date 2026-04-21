@@ -6,10 +6,12 @@ import Confetti from '@/components/Confetti'
 import { getTodayRecord, saveTodayRecord, getTotalHarePoints } from '@/lib/storage'
 import { getProfile } from '@/lib/profile'
 import PageLoader from '@/components/PageLoader'
+import { useToast } from '@/components/Toast'
 
 type Phase = 'input' | 'loading' | 'done'
 
 export default function MoyamoyaPage() {
+  const { showToast } = useToast()
   const [phase, setPhase] = useState<Phase>('input')
   const [text, setText] = useState('')
   const [reframe, setReframe] = useState('')
@@ -63,8 +65,8 @@ export default function MoyamoyaPage() {
       setConfetti(true)
       setTimeout(() => setConfetti(false), 3000)
     } catch {
-      setReframe('ちょっと不安定みたい！でもモヤモヤを吐き出せただけで、もう一歩前進だよ ✨')
-      setPhase('done')
+      showToast('AIとの接続に失敗しました。しばらくしてから再試行してください ☁️', 'error')
+      setPhase('input')
     }
   }
 

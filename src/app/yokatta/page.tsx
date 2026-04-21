@@ -6,6 +6,7 @@ import Confetti from '@/components/Confetti'
 import { getTodayRecord, saveTodayRecord, getTotalHarePoints } from '@/lib/storage'
 import { getProfile } from '@/lib/profile'
 import PageLoader from '@/components/PageLoader'
+import { useToast } from '@/components/Toast'
 
 type Phase = 'input' | 'loading' | 'done'
 
@@ -16,6 +17,7 @@ const PLACEHOLDERS = [
 ]
 
 export default function YokattaPage() {
+  const { showToast } = useToast()
   const [phase, setPhase] = useState<Phase>('input')
   const [items, setItems] = useState(['', '', ''])
   const [story, setStory] = useState('')
@@ -75,8 +77,8 @@ export default function YokattaPage() {
       setConfetti(true)
       setTimeout(() => setConfetti(false), 3500)
     } catch {
-      setStory('素敵な一日だったね！✨ 毎日こうやって良かったことを見つけてる姿勢が一番大事だよ 🌙 明日もきっと晴れる！')
-      setPhase('done')
+      showToast('AIとの接続に失敗しました。しばらくしてから再試行してください ☁️', 'error')
+      setPhase('input')
     }
   }
 
