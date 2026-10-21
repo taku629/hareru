@@ -1,10 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import OpenAI from 'openai'
-
-const client = new OpenAI({
-  apiKey: process.env.AI_API_KEY || 'demo',
-  baseURL: process.env.AI_BASE_URL || 'https://api.openai.com/v1',
-})
+import { NextRequest } from 'next/server'
+import { streamChat } from '@/lib/ai/chat-stream'
 
 export async function POST(req: NextRequest) {
   const { items } = await req.json() as { items: string[] }
@@ -28,33 +23,7 @@ ${listText}
 
 出力はストーリー本文のみ。`
 
-  try {
-    const stream = await client.chat.completions.create({
-      model: process.env.AI_MODEL || 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      stream: true,
-      max_tokens: 300,
-    })
+  const fallback = `今日もちゃんと良いことがあったね ✨ ${items[0] ? `「${items[0]}」` : 'それ'}ができたこと、本当にすごいよ！小さく見えても、毎日積み重ねてるあなたはちゃんと成長してる 🌱 この調子だと明日もきっといい一日になるよ。今日もお疲れさまでした 🌙☀️`
 
-    const encoder = new TextEncoder()
-    const readable = new ReadableStream({
-      async start(controller) {
-        for await (const chunk of stream) {
-          const t = chunk.choices[0]?.delta?.content || ''
-          if (t) controller.enqueue(encoder.encode(t))
-        }
-        controller.close()
-      },
-    })
-
-    return new NextResponse(readable, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Transfer-Encoding': 'chunked',
-      },
-    })
-  } catch {
-    const fallback = `今日もちゃんと良いことがあったね ✨ ${items[0] ? `「${items[0]}」` : 'それ'}ができたこと、本当にすごいよ！小さく見えても、毎日積み重ねてるあなたはちゃんと成長してる 🌱 この調子だと明日もきっといい一日になるよ。今日もお疲れさまでした 🌙☀️`
-    return new NextResponse(fallback, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } })
-  }
+  return streamChat({ prompt, fallback })
 }
