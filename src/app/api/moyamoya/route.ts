@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
-import OpenAI from 'openai'
+import { NextRequest } from 'next/server'
+import { streamChat } from '@/lib/ai/chat-stream'
 
-const client = new OpenAI({
-  apiKey: process.env.AI_API_KEY || 'demo',
-  baseURL: process.env.AI_BASE_URL || 'https://api.openai.com/v1',
-})
+const FALLBACKS = [
+  `そっか〜、それは本当につらいね 😔 でもそれだけ真剣に向き合ってる証拠だよ。まずは5分だけ、好きな音楽かけてみよ？小さな気分転換が意外と効くんだよね ✨ 今日のあなた、ちゃんとえらいよ！`,
+  `うわあ、それはしんどいね 💙 でも考えてみると、こんなに感じてるってことは、あなたがそれだけ大事にしてるからだよ。今日一個だけ「これやった！」って言えること作ってみよ？絶対できるから 🌟`,
+  `ほんとだね、モヤモヤするよね 😌 別の見方すると、その気持ちがあるってことは成長しようとしてるサインかも。まず水飲んで、深呼吸してみて。あなたのペースで全然いいんだよ ☀️✨`,
+]
 
 export async function POST(req: NextRequest) {
   const { text } = await req.json()
@@ -26,39 +27,8 @@ export async function POST(req: NextRequest) {
 
 出力はリフレームメッセージ本文のみ。`
 
-  try {
-    const stream = await client.chat.completions.create({
-      model: process.env.AI_MODEL || 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      stream: true,
-      max_tokens: 300,
-    })
-
-    const encoder = new TextEncoder()
-    const readable = new ReadableStream({
-      async start(controller) {
-        for await (const chunk of stream) {
-          const t = chunk.choices[0]?.delta?.content || ''
-          if (t) controller.enqueue(encoder.encode(t))
-        }
-        controller.close()
-      },
-    })
-
-    return new NextResponse(readable, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Transfer-Encoding': 'chunked',
-      },
-    })
-  } catch {
-    // Demo fallback
-    const fallbacks = [
-      `そっか〜、それは本当につらいね 😔 でもそれだけ真剣に向き合ってる証拠だよ。まずは5分だけ、好きな音楽かけてみよ？小さな気分転換が意外と効くんだよね ✨ 今日のあなた、ちゃんとえらいよ！`,
-      `うわあ、それはしんどいね 💙 でも考えてみると、こんなに感じてるってことは、あなたがそれだけ大事にしてるからだよ。今日一個だけ「これやった！」って言えること作ってみよ？絶対できるから 🌟`,
-      `ほんとだね、モヤモヤするよね 😌 別の見方すると、その気持ちがあるってことは成長しようとしてるサインかも。まず水飲んで、深呼吸してみて。あなたのペースで全然いいんだよ ☀️✨`,
-    ]
-    const msg = fallbacks[Math.floor(Math.random() * fallbacks.length)]
-    return new NextResponse(msg, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } })
-  }
+  return streamChat({
+    prompt,
+    fallback: () => FALLBACKS[Math.floor(Math.random() * FALLBACKS.length)],
+  })
 }
